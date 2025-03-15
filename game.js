@@ -64,32 +64,40 @@ function aiMove() {
 	makeMove(bestMove, opponentSymbol);
 }
 
-function checkGameStatus() {
+function checkWinner(board) {
 	const winPatterns = [
-		[0, 1, 2], [3, 4, 5], [6, 7, 8], // These are row pattern
-		[0, 3, 6], [1, 4, 7], [2, 5, 8], // These are column pattern
-		[0, 4, 8], [2, 4, 6]             // These are diagonal patterns
+		[0, 1, 2], [3, 4, 5], [6, 7, 8],
+		[0, 3, 6], [1, 4, 7], [2, 5, 8],
+		[0, 4, 8], [2, 4, 6]
 	];
 
-	// Check for win
 	for (const pattern of winPatterns) {
 		const [a, b, c] = pattern;
-		if (gameState.board[a] && gameState.board[a] === gameState.board[b] && gameState.board[a] === gameState.board[c]) {
-			gameState.gameOver = true;
+		if (board[a] && board[a] === board[b] && board[a] === board[c]) {
 			gameState.winningCombination = pattern;
-			highlightWinningCells(pattern);
-			
-			if (gameState.board[a] === playerSymbol) {
-				status.textContent = 'You win!';
-				scores.player++;
-			} else {
-				status.textContent = 'AI wins!';
-				scores.ai++;
-			}
-			
-			updateScore();
-			return;
+			return board[a];
 		}
+	}
+
+	return board.includes('') ? null : 'draw';
+}
+
+function checkGameStatus() {
+	if (checkWinner(gameState.board) !== null && checkWinner(gameState.board) !== 'draw') {
+		gameState.gameOver = true;  
+		highlightWinningCells(gameState.winningCombination);
+		const combinationIndex = gameState.winningCombination[0];
+		
+		if (gameState.board[combinationIndex] === playerSymbol) {
+			status.textContent = 'You win!';
+			scores.player++;
+		} else {
+			status.textContent = 'Computer wins!';
+			scores.ai++;
+		}
+		
+		updateScore();
+		return;
 	}
 
 	// Check for draw
@@ -126,7 +134,9 @@ function minimax(board, depth, isMaximizing, alpha = -Infinity, beta = Infinity)
 				board[i] = '';
 				bestScore = Math.max(score, bestScore);
 				alpha = Math.max(alpha, bestScore);
-				if (beta <= alpha) break; // Alpha-beta pruning
+				if (beta <= alpha) {
+					break; // Alpha-beta pruning
+				} 
 			}
 		}
 		return bestScore;
@@ -139,7 +149,9 @@ function minimax(board, depth, isMaximizing, alpha = -Infinity, beta = Infinity)
 				board[i] = '';
 				bestScore = Math.min(score, bestScore);
 				beta = Math.min(beta, bestScore);
-				if (beta <= alpha) break; // Alpha-beta pruning
+				if (beta <= alpha) {
+					break;
+				} 
 			}
 		}
 		return bestScore;
@@ -193,23 +205,6 @@ function findBestMove(board) {
 	}
 	
 	return bestMove;
-}
-
-function checkWinner(board) {
-	const winPatterns = [
-		[0, 1, 2], [3, 4, 5], [6, 7, 8],
-		[0, 3, 6], [1, 4, 7], [2, 5, 8],
-		[0, 4, 8], [2, 4, 6]
-	];
-
-	for (const pattern of winPatterns) {
-		const [a, b, c] = pattern;
-		if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-			return board[a];
-		}
-	}
-
-	return board.includes('') ? null : 'draw';
 }
 
 const boardElement = document.getElementById('board');
